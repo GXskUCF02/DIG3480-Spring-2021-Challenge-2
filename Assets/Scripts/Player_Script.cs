@@ -9,15 +9,29 @@ public class Player_Script : MonoBehaviour
 
     public float speed;
 
-    public Text score;
+    public Text scoreText;
+    public Text winText;
+    public Text livesText;
 
     private int scoreValue = 0;
+    
+    private int score;
+    private int lives;
 
     // Start is called before the first frame update
     void Start()
     {
         rd2d = GetComponent<Rigidbody2D>();
-        score.text = scoreValue.ToString();
+        scoreText.text = scoreValue.ToString();
+
+        score = 0;
+        lives = 3;
+
+        SetScoreText();
+
+        SetLivesText();
+
+        winText.text = " ";
     }
 
     // Update is called once per frame
@@ -42,9 +56,16 @@ public class Player_Script : MonoBehaviour
     {
         if (collision.collider.tag == "Coin")
         {
-            scoreValue += 1;
-            score.text = scoreValue.ToString();
+            score = score + 1;
+            SetScoreText();
             Destroy(collision.collider.gameObject);
+        }
+
+        else if (collision.collider.tag == "Enemy")
+        {
+          lives = lives - 1; 
+          SetLivesText();
+          Destroy(collision.collider.gameObject);
         }
     }
 
@@ -57,5 +78,28 @@ public class Player_Script : MonoBehaviour
                 rd2d.AddForce(new Vector2(0, 3), ForceMode2D.Impulse);
             }
         }
+    }
+
+    void SetScoreText()
+    {
+        scoreText.text = "Number of Collectibles Collected: " + score.ToString();
+        
+        if (score >= 5)
+        {
+            winText.text = "You gotten them all! Game made by Gage Schroeder";
+        }
+        
+    }
+
+    void SetLivesText()
+    {
+        livesText.text = "Lives: " + lives.ToString();
+        
+        if (lives <= 0)
+        {
+            Destroy(gameObject);
+            winText.text = "You lost the game... Game made by Gage Schroeder";
+        }
+        
     }
 }
