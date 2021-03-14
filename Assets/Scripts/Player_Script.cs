@@ -9,6 +9,13 @@ public class Player_Script : MonoBehaviour
 
     public float speed;
 
+    private bool isOnGround;
+    public Transform groundcheck;
+    public float checkRadius;
+    public LayerMask allGround;
+
+    public float jumpForce;
+
     public Text scoreText;
     public Text winText;
     public Text livesText;
@@ -18,11 +25,23 @@ public class Player_Script : MonoBehaviour
     private int score;
     private int lives;
 
+    public AudioClip musicBackground;
+
+    public AudioClip musicWin;
+
+    public AudioSource musicSource;
+
+    Animator anim;
+
+    private bool facingRight = true;
+
     // Start is called before the first frame update
     void Start()
     {
         rd2d = GetComponent<Rigidbody2D>();
         scoreText.text = scoreValue.ToString();
+
+        anim = GetComponent<Animator>();
 
         score = 0;
         lives = 3;
@@ -40,12 +59,46 @@ public class Player_Script : MonoBehaviour
         float hozMovement = Input.GetAxis("Horizontal");
         float vertMovement = Input.GetAxis("Vertical");
         rd2d.AddForce(new Vector2(hozMovement * speed, vertMovement * speed));
-
+        isOnGround = Physics2D.OverlapCircle(groundcheck.position, checkRadius, allGround);
         
+        if (facingRight == false && hozMovement > 0)
+        {
+            Flip();
+        }
+        else if (facingRight == true && hozMovement < 0)
+        {
+            Flip();
+        }
     }
 
     void Update()
     {
+        if (Input.GetKey(KeyCode.W))
+        {
+          anim.SetInteger("State", 2);
+        }
+
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+          anim.SetInteger("State", 1);
+        }
+
+        if (Input.GetKeyUp(KeyCode.D))
+        {
+          anim.SetInteger("State", 0);
+        }
+
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+          anim.SetInteger("State", 1);
+        }
+
+        if (Input.GetKeyUp(KeyCode.A))
+        {
+          
+          anim.SetInteger("State", 0);
+        }
+
         if (Input.GetKey("escape"))
         {
             Application.Quit();
@@ -71,11 +124,11 @@ public class Player_Script : MonoBehaviour
 
     private void OnCollisionStay2D(Collision2D collision)
     {
-        if (collision.collider.tag == "Ground")
+        if (collision.collider.tag == "Ground"  && isOnGround)
         {
             if (Input.GetKey(KeyCode.W))
             {
-                rd2d.AddForce(new Vector2(0, 3), ForceMode2D.Impulse);
+                rd2d.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
             }
         }
     }
@@ -84,8 +137,18 @@ public class Player_Script : MonoBehaviour
     {
         scoreText.text = "Number of Collectibles Collected: " + score.ToString();
         
-        if (score >= 5)
+        if (score == 5)
         {
+            transform.position = new Vector2(59.06f, 6.78f);
+            lives = 3;
+            SetLivesText();
+        }
+
+        else if (score >= 11)
+        {
+            musicSource.Stop();
+            musicSource.clip = musicWin;
+            musicSource.Play();
             winText.text = "You gotten them all! Game made by Gage Schroeder";
         }
         
@@ -99,7 +162,16 @@ public class Player_Script : MonoBehaviour
         {
             Destroy(gameObject);
             winText.text = "You lost the game... Game made by Gage Schroeder";
+            musicSource.Stop();
         }
-        
+
+    }
+
+    void Flip()
+    {
+     facingRight = !facingRight;
+     Vector2 Scaler = transform.localScale;
+     Scaler.x = Scaler.x * -1;
+     transform.localScale = Scaler;
     }
 }
